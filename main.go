@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/manifoldco/promptui"
 )
 
 // im-bored is main command
@@ -21,6 +23,21 @@ type Response struct {
 	Link          string  `json:"link"`
 	Key           string  `json:"key"`
 	Accessibility float64 `json:"accessibility"`
+}
+
+func prompt() string {
+	prompt := promptui.Select{
+		Label: "Which activity type should we search for?",
+		Items: []string{"random", "education", "recreational", "social", "diy", "charity", "cooking", "relaxation", "music", "busywork"},
+	}
+
+	_, result, err := prompt.Run()
+
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+	}
+
+	return result
 }
 
 // function for calling random?
@@ -44,18 +61,41 @@ func random() {
 	fmt.Println(responseObject.Link)
 }
 
+// func response() string {
+// 	return "test"
+// }
+
 func main() {
 	// welcome message (ascii preferred)
-	welcome := "Welcome to I am Bored"
+	welcome := "\nWelcome to I am Bored\n"
 	fmt.Println(welcome)
+
 	// ask for input
-	var activity string
-	fmt.Println("What kind of acitvity are you looking for? (random is an option)")
-	fmt.Scanln(&activity)
-	if activity == "random" {
+	// prompt func
+	activityType := prompt()
+
+	if activityType == "random" {
 		random()
+		return
 	}
-	// var people int
-	// fmt.Println("How many people are there? (Enter a number)")
-	// questions acitvity, how many people, etc.
+	
+	query := "http://www.boredapi.com/api/activity?type=" + activityType
+
+	// @TODO create response function, accepts variable returns string
+
+	queryResponse, err := http.Get(query)
+
+	if err != nil {
+		fmt.Print(err.Error())
+		os.Exit(1)
+	}
+
+	queryData, err := ioutil.ReadAll(queryResponse.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var responseQuery Response
+	json.Unmarshal(queryData, &responseQuery)
+	fmt.Println(responseQuery.Activity)
 }
