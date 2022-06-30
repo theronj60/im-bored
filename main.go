@@ -40,30 +40,33 @@ func prompt() string {
 	return result
 }
 
-// function for calling random?
+// function for calling random
 func random() {
-	response, err := http.Get("http://www.boredapi.com/api/activity/")
+	responseUrl := "http://www.boredapi.com/api/activity/"
+	
+	response := getResponse(responseUrl)
+	fmt.Println(response.Activity)
+	fmt.Println(response.Link)
+}
+
+func getResponse(query string) Response {
+	queryResponse, err := http.Get(query)
 
 	if err != nil {
 		fmt.Print(err.Error())
 		os.Exit(1)
 	}
 
-	responseData, err := ioutil.ReadAll(response.Body)
+	queryData, err := ioutil.ReadAll(queryResponse.Body)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	var responseObject Response
-	json.Unmarshal(responseData, &responseObject)
+	var responseQuery Response
+	json.Unmarshal(queryData, &responseQuery)
 
-	fmt.Println(responseObject.Activity)
-	fmt.Println(responseObject.Link)
+	return responseQuery
 }
-
-// func response() string {
-// 	return "test"
-// }
 
 func main() {
 	// welcome message (ascii preferred)
@@ -82,20 +85,9 @@ func main() {
 	query := "http://www.boredapi.com/api/activity?type=" + activityType
 
 	// @TODO create response function, accepts variable returns string
+	// @TODO create loop to continue looking for something to do until one is found
 
-	queryResponse, err := http.Get(query)
-
-	if err != nil {
-		fmt.Print(err.Error())
-		os.Exit(1)
-	}
-
-	queryData, err := ioutil.ReadAll(queryResponse.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	var responseQuery Response
-	json.Unmarshal(queryData, &responseQuery)
-	fmt.Println(responseQuery.Activity)
+	response := getResponse(query)
+	
+	fmt.Println(response.Activity)
 }
