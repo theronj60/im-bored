@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/manifoldco/promptui"
 )
@@ -23,6 +25,12 @@ type Response struct {
 	Link          string  `json:"link"`
 	Key           string  `json:"key"`
 	Accessibility float64 `json:"accessibility"`
+}
+
+func clear() {
+	cmd := exec.Command("clear")
+	cmd.Stdout = os.Stdout
+	cmd.Run()
 }
 
 func prompt() string {
@@ -43,7 +51,7 @@ func prompt() string {
 // function for calling random
 func random() {
 	responseUrl := "http://www.boredapi.com/api/activity/"
-	
+
 	response := getResponse(responseUrl)
 	fmt.Println(response.Activity)
 	fmt.Println(response.Link)
@@ -71,23 +79,35 @@ func getResponse(query string) Response {
 func main() {
 	// welcome message (ascii preferred)
 	welcome := "\nWelcome to I am Bored\n"
+	play := true
 	fmt.Println(welcome)
 
-	// ask for input
-	// prompt func
-	activityType := prompt()
+	for play {
+		// ask for input
+		// prompt func
+		activityType := prompt()
 
-	if activityType == "random" {
-		random()
-		return
+		if activityType == "random" {
+			random()
+		}
+
+		query := "http://www.boredapi.com/api/activity?type=" + activityType
+
+		response := getResponse(query)
+		fmt.Println(response.Activity)
+
+		// ask user to keep going
+		fmt.Println("\nWould you like to try again?\nPlease type yes or no")
+		var userInput string
+		fmt.Scanln(&userInput)
+
+		userInput = strings.ToLower(userInput)
+
+		if userInput == "no" {
+			os.Exit(1)
+		} else {
+			clear()
+			continue
+		}
 	}
-	
-	query := "http://www.boredapi.com/api/activity?type=" + activityType
-
-	// @TODO create response function, accepts variable returns string
-	// @TODO create loop to continue looking for something to do until one is found
-
-	response := getResponse(query)
-	
-	fmt.Println(response.Activity)
 }
